@@ -3,150 +3,140 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>The Professor - SCP Log Terminal</title>
+  <title>The Professor - SCP Terminal</title>
   <style>
     body {
-      background-color: #0d0d0d;
       margin: 0;
-      font-family: monospace;
-      overflow: hidden;
+      font-family: 'Courier New', Courier, monospace;
+      background-color: #f2f2f2;
+      background: url("/mnt/data/825818b4-7bce-4fc7-b78a-192451a85a90.png") center center no-repeat;
+      background-size: cover;
+      position: relative;
     }
 
-    /* Booting screen */
-    #boot-screen {
-      color: lime;
-      font-size: 14px;
-      padding: 20px;
-      white-space: pre-line;
+    #login-screen {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      background-color: rgba(255, 255, 255, 0.95);
+      padding: 40px;
+      border: 2px solid #000;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+      width: 400px;
     }
 
-    /* Terminal popup */
+    #login-screen h1 {
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+
+    #login-screen input {
+      width: 80%;
+      padding: 10px;
+      margin: 10px;
+      font-size: 16px;
+    }
+
+    #login-screen button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
     #terminal {
       display: none;
       position: absolute;
-      top: 20px;
-      left: 20px;
-      width: 500px;
-      height: 300px;
-      background: rgba(0, 0, 0, 0.9);
-      border: 2px solid lime;
-      padding: 10px;
-      overflow-y: auto;
+      top: 60px;
+      left: 50px;
+      width: 600px;
+      height: 400px;
+      background-color: rgba(0, 0, 0, 0.9);
       color: #00ff00;
-      font-size: 14px;
-      resize: both;
+      padding: 20px;
+      overflow-y: auto;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
     }
 
-    #terminal input {
-      width: 100%;
-      background: black;
-      color: lime;
-      border: none;
-      font-family: monospace;
-      font-size: 14px;
-    }
-
-    .paper-log {
+    #paper-log {
       display: none;
       position: absolute;
-      top: 40px;
-      right: 40px;
-      width: 480px;
-      height: 640px;
-      background: url('data:image/png;base64,REPLACE_WITH_BASE64') no-repeat center center;
-      background-size: cover;
+      top: 80px;
+      left: 700px;
+      width: 450px;
+      background-color: white;
+      border: 1px solid #aaa;
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
       padding: 20px;
-      font-family: 'Courier New', monospace;
-      color: black;
-      overflow-y: auto;
-      z-index: 100;
-      box-shadow: 0 0 20px rgba(255,255,255,0.2);
+      font-size: 14px;
+      color: #000;
+      line-height: 1.5;
     }
 
-    .highlight {
-      background-color: yellow;
+    .log-header {
+      font-weight: bold;
+      font-size: 16px;
+      text-align: center;
+      margin-bottom: 10px;
     }
   </style>
 </head>
 <body>
-  <div id="boot-screen"></div>
+  <div id="login-screen">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/SCP_Foundation_%28emblem%29.svg/512px-SCP_Foundation_%28emblem%29.svg.png" width="80" /><br />
+    <h1>SCP FOUNDATION TERMINAL</h1>
+    <div>
+      <label>User:</label>
+      <input type="text" value="the-professor-scd-councilman" disabled /><br />
+      <label>ID:</label>
+      <input type="password" value="***********" disabled /><br />
+      <button onclick="bootTerminal()">Log in</button>
+    </div>
+  </div>
 
   <div id="terminal">
     <div id="terminal-output"></div>
-    <input type="text" id="terminal-input" placeholder="Enter command..." autofocus />
+    <input type="text" id="terminal-input" onkeydown="processInput(event)" autofocus />
   </div>
 
-  <div class="paper-log" id="paper-log">
-    <h3>SCP-096 Log Report</h3>
+  <div id="paper-log">
+    <div class="log-header">SCP-096 Test Log</div>
     <p><strong>Clearance Level:</strong> 2</p>
+    <p><strong>Item #:</strong> SCP-096</p>
     <p><strong>Object Class:</strong> Euclid</p>
-    <p><strong>Description:</strong></p>
-    <p>
-      SCP-096 is normally extremely docile. However, <span class="highlight">when someone views SCP-096’s face</span>, whether it be directly or via video recording, it will enter a state of considerable emotional distress.
-    </p>
-    <p>
-      SCP-096 will proceed to <span class="highlight">[DATA EXPUNGED]</span>.
-    </p>
-    <p><em>More logs can be opened using terminal commands.</em></p>
+    <p><strong>Special Containment Procedures:</strong> SCP-096 is to be contained in its cell, a 5 m × 5 m × 5 m airtight steel cube, at all times...</p>
+    <p><strong>Description:</strong> SCP-096 is a humanoid creature measuring approximately 2.38 m in height...</p>
+    <p><em>[Highlighted areas not shown for brevity]</em></p>
+    <p><strong>CONFIDENTIAL</strong> – Unauthorized access is prohibited.</p>
   </div>
 
   <script>
-    const bootText = `Initializing Secure SCP Terminal...
-Authenticating user: the-professor-scd-councilman
-Password: ********
-Access Granted.
-Loading Logs...
-Type 'help' for list of commands.`;
-
-    const terminal = document.getElementById("terminal");
-    const bootScreen = document.getElementById("boot-screen");
-    const output = document.getElementById("terminal-output");
-    const input = document.getElementById("terminal-input");
-    const paperLog = document.getElementById("paper-log");
-
-    let bootIndex = 0;
-    function typeBoot() {
-      if (bootIndex < bootText.length) {
-        bootScreen.innerHTML += bootText.charAt(bootIndex);
-        bootIndex++;
-        setTimeout(typeBoot, 20);
-      } else {
-        setTimeout(() => {
-          bootScreen.style.display = "none";
-          terminal.style.display = "block";
-          input.focus();
-        }, 1000);
-      }
+    function bootTerminal() {
+      document.getElementById("login-screen").style.display = "none";
+      document.getElementById("terminal").style.display = "block";
+      const output = document.getElementById("terminal-output");
+      output.innerHTML += "<p>Booting Terminal... Access granted to 'The Professor'.</p>";
     }
 
-    typeBoot();
+    function processInput(event) {
+      if (event.key === "Enter") {
+        const input = document.getElementById("terminal-input");
+        const command = input.value.trim().toLowerCase();
+        const output = document.getElementById("terminal-output");
 
-    input.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        const cmd = input.value.trim().toLowerCase();
-        output.innerHTML += `\n> ${cmd}`;
-        input.value = "";
+        output.innerHTML += `<p>> ${command}</p>`;
 
-        switch (cmd) {
-          case "help":
-            output.innerHTML += `\nCommands:\nhelp\nlogs-list\nopen-log-001\nclose-log`;
-            break;
-          case "logs-list":
-            output.innerHTML += `\nAvailable Logs:\nSCP-096 Log: open-log-001`;
-            break;
-          case "open-log-001":
-            paperLog.style.display = "block";
-            break;
-          case "close-log":
-            paperLog.style.display = "none";
-            break;
-          default:
-            output.innerHTML += `\nUnknown command.`;
-            break;
+        if (command === "open-log-001") {
+          document.getElementById("paper-log").style.display = "block";
+        } else {
+          output.innerHTML += `<p>Unknown command: ${command}</p>`;
         }
+
+        input.value = "";
         output.scrollTop = output.scrollHeight;
       }
-    });
+    }
   </script>
 </body>
 </html>
