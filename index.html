@@ -1,137 +1,150 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>The Professor - SCP Logs Terminal</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Professor - SCP Log Terminal</title>
   <style>
     body {
+      background-color: #0d0d0d;
       margin: 0;
-      font-family: 'Courier New', Courier, monospace;
-      background-color: #000;
-      color: #00ff00;
-      display: flex;
-      height: 100vh;
+      font-family: monospace;
       overflow: hidden;
     }
 
-    #main-terminal {
-      width: 60%;
+    /* Booting screen */
+    #boot-screen {
+      color: lime;
+      font-size: 14px;
       padding: 20px;
-      background-color: rgba(0, 0, 0, 0.85);
-      overflow-y: auto;
-      border-right: 2px solid #00ff00;
+      white-space: pre-line;
     }
 
-    #log-viewer {
-      width: 40%;
-      background: #fdf6e3;
-      color: #111;
-      padding: 20px;
-      overflow-y: auto;
+    /* Terminal popup */
+    #terminal {
       display: none;
-      flex-direction: column;
-      font-family: 'Georgia', serif;
-      line-height: 1.6;
-    }
-
-    .log-paper {
-      background: white;
-      padding: 15px;
-      border: 1px solid #ccc;
-      box-shadow: 2px 2px 6px rgba(0,0,0,0.2);
-    }
-
-    #command {
-      width: 100%;
-      background: transparent;
-      border: none;
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      width: 500px;
+      height: 300px;
+      background: rgba(0, 0, 0, 0.9);
+      border: 2px solid lime;
+      padding: 10px;
+      overflow-y: auto;
       color: #00ff00;
-      font-size: 16px;
-      outline: none;
+      font-size: 14px;
+      resize: both;
     }
 
-    .green { color: #00ff00; font-weight: bold; }
-    .error { color: red; }
-    .info { color: white; }
+    #terminal input {
+      width: 100%;
+      background: black;
+      color: lime;
+      border: none;
+      font-family: monospace;
+      font-size: 14px;
+    }
+
+    .paper-log {
+      display: none;
+      position: absolute;
+      top: 40px;
+      right: 40px;
+      width: 480px;
+      height: 640px;
+      background: url('data:image/png;base64,REPLACE_WITH_BASE64') no-repeat center center;
+      background-size: cover;
+      padding: 20px;
+      font-family: 'Courier New', monospace;
+      color: black;
+      overflow-y: auto;
+      z-index: 100;
+      box-shadow: 0 0 20px rgba(255,255,255,0.2);
+    }
+
+    .highlight {
+      background-color: yellow;
+    }
   </style>
 </head>
 <body>
-  <div id="main-terminal">
+  <div id="boot-screen"></div>
+
+  <div id="terminal">
     <div id="terminal-output"></div>
-    <input id="command" type="text" autofocus placeholder="Enter command...">
+    <input type="text" id="terminal-input" placeholder="Enter command..." autofocus />
   </div>
 
-  <div id="log-viewer">
-    <div class="log-paper" id="log-content"></div>
+  <div class="paper-log" id="paper-log">
+    <h3>SCP-096 Log Report</h3>
+    <p><strong>Clearance Level:</strong> 2</p>
+    <p><strong>Object Class:</strong> Euclid</p>
+    <p><strong>Description:</strong></p>
+    <p>
+      SCP-096 is normally extremely docile. However, <span class="highlight">when someone views SCP-096’s face</span>, whether it be directly or via video recording, it will enter a state of considerable emotional distress.
+    </p>
+    <p>
+      SCP-096 will proceed to <span class="highlight">[DATA EXPUNGED]</span>.
+    </p>
+    <p><em>More logs can be opened using terminal commands.</em></p>
   </div>
 
   <script>
-    const output = document.getElementById('terminal-output');
-    const input = document.getElementById('command');
-    const logViewer = document.getElementById('log-viewer');
-    const logContent = document.getElementById('log-content');
+    const bootText = `Initializing Secure SCP Terminal...
+Authenticating user: the-professor-scd-councilman
+Password: ********
+Access Granted.
+Loading Logs...
+Type 'help' for list of commands.`;
 
-    const logs = {
-      "log-001": "**Test Log: SCP-173**\nDate: 03/12/2022\nSubject: D-4389\nProcedure: Subject placed in chamber with SCP-173 under observation.\nResult: Subject terminated after 2.3 seconds.\nNotes: Observation camera glitch recorded during the incident.",
-      "log-002": "**Test Log: SCP-096**\nDate: 05/07/2022\nSubject: D-9811\nProcedure: Image of SCP-096 shown to subject.\nResult: SCP-096 breached containment. 14 personnel dead.\nNotes: Professor noted increased aggression levels.",
-      "log-003": "**Experiment Log: SCP-999**\nDate: 06/21/2022\nSubject: Dr. Appleton\nProcedure: Exposed to SCP-999 for morale testing.\nResult: Subject reported euphoria and improved psychological state.\nNotes: Recommending regular exposure for Class-D morale management."
-    };
+    const terminal = document.getElementById("terminal");
+    const bootScreen = document.getElementById("boot-screen");
+    const output = document.getElementById("terminal-output");
+    const input = document.getElementById("terminal-input");
+    const paperLog = document.getElementById("paper-log");
 
-    function writeOutput(text, cls = 'info') {
-      const div = document.createElement('div');
-      div.className = cls;
-      div.textContent = text;
-      output.appendChild(div);
-      output.scrollTop = output.scrollHeight;
+    let bootIndex = 0;
+    function typeBoot() {
+      if (bootIndex < bootText.length) {
+        bootScreen.innerHTML += bootText.charAt(bootIndex);
+        bootIndex++;
+        setTimeout(typeBoot, 20);
+      } else {
+        setTimeout(() => {
+          bootScreen.style.display = "none";
+          terminal.style.display = "block";
+          input.focus();
+        }, 1000);
+      }
     }
 
-    function handleCommand(cmd) {
-      const c = cmd.toLowerCase();
+    typeBoot();
 
-      if (c === 'help') {
-        writeOutput('Available commands:', 'green');
-        writeOutput('  logs-list - Lists all available Professor logs.', 'green');
-        writeOutput('  open-log-[ID] - Open a specific log file.', 'green');
-        writeOutput('  close-log - Close the current log viewer.', 'green');
-        return;
-      }
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        const cmd = input.value.trim().toLowerCase();
+        output.innerHTML += `\n> ${cmd}`;
+        input.value = "";
 
-      if (c === 'logs-list') {
-        writeOutput('Available Logs:', 'green');
-        Object.keys(logs).forEach(log => {
-          writeOutput(`  ${log}`, 'green');
-        });
-        writeOutput('Use command: open-log-[ID] to view the log.');
-        return;
-      }
-
-      if (c.startsWith('open-log-')) {
-        const logId = c.substring(9);
-        if (logs[logId]) {
-          logViewer.style.display = 'flex';
-          logContent.textContent = logs[logId];
-        } else {
-          writeOutput('Log not found.', 'error');
+        switch (cmd) {
+          case "help":
+            output.innerHTML += `\nCommands:\nhelp\nlogs-list\nopen-log-001\nclose-log`;
+            break;
+          case "logs-list":
+            output.innerHTML += `\nAvailable Logs:\nSCP-096 Log: open-log-001`;
+            break;
+          case "open-log-001":
+            paperLog.style.display = "block";
+            break;
+          case "close-log":
+            paperLog.style.display = "none";
+            break;
+          default:
+            output.innerHTML += `\nUnknown command.`;
+            break;
         }
-        return;
-      }
-
-      if (c === 'close-log') {
-        logViewer.style.display = 'none';
-        logContent.textContent = '';
-        return;
-      }
-
-      writeOutput('Unknown command. Type "help" for available commands.', 'error');
-    }
-
-    input.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') {
-        const command = input.value.trim();
-        input.value = '';
-        writeOutput(`> ${command}`, 'green');
-        handleCommand(command);
+        output.scrollTop = output.scrollHeight;
       }
     });
   </script>
