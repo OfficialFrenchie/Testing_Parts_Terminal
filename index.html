@@ -1,1 +1,139 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>The Professor - SCP Logs Terminal</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Courier New', Courier, monospace;
+      background-color: #000;
+      color: #00ff00;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    #main-terminal {
+      width: 60%;
+      padding: 20px;
+      background-color: rgba(0, 0, 0, 0.85);
+      overflow-y: auto;
+      border-right: 2px solid #00ff00;
+    }
+
+    #log-viewer {
+      width: 40%;
+      background: #fdf6e3;
+      color: #111;
+      padding: 20px;
+      overflow-y: auto;
+      display: none;
+      flex-direction: column;
+      font-family: 'Georgia', serif;
+      line-height: 1.6;
+    }
+
+    .log-paper {
+      background: white;
+      padding: 15px;
+      border: 1px solid #ccc;
+      box-shadow: 2px 2px 6px rgba(0,0,0,0.2);
+    }
+
+    #command {
+      width: 100%;
+      background: transparent;
+      border: none;
+      color: #00ff00;
+      font-size: 16px;
+      outline: none;
+    }
+
+    .green { color: #00ff00; font-weight: bold; }
+    .error { color: red; }
+    .info { color: white; }
+  </style>
+</head>
+<body>
+  <div id="main-terminal">
+    <div id="terminal-output"></div>
+    <input id="command" type="text" autofocus placeholder="Enter command...">
+  </div>
+
+  <div id="log-viewer">
+    <div class="log-paper" id="log-content"></div>
+  </div>
+
+  <script>
+    const output = document.getElementById('terminal-output');
+    const input = document.getElementById('command');
+    const logViewer = document.getElementById('log-viewer');
+    const logContent = document.getElementById('log-content');
+
+    const logs = {
+      "log-001": "**Test Log: SCP-173**\nDate: 03/12/2022\nSubject: D-4389\nProcedure: Subject placed in chamber with SCP-173 under observation.\nResult: Subject terminated after 2.3 seconds.\nNotes: Observation camera glitch recorded during the incident.",
+      "log-002": "**Test Log: SCP-096**\nDate: 05/07/2022\nSubject: D-9811\nProcedure: Image of SCP-096 shown to subject.\nResult: SCP-096 breached containment. 14 personnel dead.\nNotes: Professor noted increased aggression levels.",
+      "log-003": "**Experiment Log: SCP-999**\nDate: 06/21/2022\nSubject: Dr. Appleton\nProcedure: Exposed to SCP-999 for morale testing.\nResult: Subject reported euphoria and improved psychological state.\nNotes: Recommending regular exposure for Class-D morale management."
+    };
+
+    function writeOutput(text, cls = 'info') {
+      const div = document.createElement('div');
+      div.className = cls;
+      div.textContent = text;
+      output.appendChild(div);
+      output.scrollTop = output.scrollHeight;
+    }
+
+    function handleCommand(cmd) {
+      const c = cmd.toLowerCase();
+
+      if (c === 'help') {
+        writeOutput('Available commands:', 'green');
+        writeOutput('  logs-list - Lists all available Professor logs.', 'green');
+        writeOutput('  open-log-[ID] - Open a specific log file.', 'green');
+        writeOutput('  close-log - Close the current log viewer.', 'green');
+        return;
+      }
+
+      if (c === 'logs-list') {
+        writeOutput('Available Logs:', 'green');
+        Object.keys(logs).forEach(log => {
+          writeOutput(`  ${log}`, 'green');
+        });
+        writeOutput('Use command: open-log-[ID] to view the log.');
+        return;
+      }
+
+      if (c.startsWith('open-log-')) {
+        const logId = c.substring(9);
+        if (logs[logId]) {
+          logViewer.style.display = 'flex';
+          logContent.textContent = logs[logId];
+        } else {
+          writeOutput('Log not found.', 'error');
+        }
+        return;
+      }
+
+      if (c === 'close-log') {
+        logViewer.style.display = 'none';
+        logContent.textContent = '';
+        return;
+      }
+
+      writeOutput('Unknown command. Type "help" for available commands.', 'error');
+    }
+
+    input.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        const command = input.value.trim();
+        input.value = '';
+        writeOutput(`> ${command}`, 'green');
+        handleCommand(command);
+      }
+    });
+  </script>
+</body>
+</html>
